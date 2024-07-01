@@ -6,10 +6,11 @@ from django.http import HttpResponse
 import io
 from rest_framework.parsers import JSONParser
 from django.views.decorators.csrf import csrf_exempt
-
-@csrf_exempt
-def student_api(request,id=None):
-    if request.method=='GET':
+from django.utils.decorators import method_decorator
+from django.views import View
+@method_decorator(csrf_exempt,name='dispatch')
+class StudentAPI(View):
+    def get(self,request,*args,id=None,**kwargs):
         if id==None:
             try:
                 students=Student.objects.all()
@@ -26,7 +27,7 @@ def student_api(request,id=None):
                 return HttpResponse(student_json,content_type='application/json',status=200)
             except Student.DoesNotExist:
                 return HttpResponse('Student with given id Does not exist',status=400)
-    elif request.method=='POST':
+    def post(self,request,*args,**kwargs):
         student_json=request.body
         student_stream=io.BytesIO(student_json)
         student_parsed=JSONParser().parse(student_stream)
@@ -35,12 +36,12 @@ def student_api(request,id=None):
             student_deserialized.save()
             return HttpResponse(student_json,content_type='application/json',status=201)
         return HttpResponse('Unable to create Student',status=400)
-    elif request.method=='PUT':
+    def put(self,request,*args,id=None,**kwargs):
         if id!=None:
             try:
                 student_old=Student.objects.get(id=id)
                 student_json=request.body
-                student_stream=io.BytesIO(students_json)
+                student_stream=io.BytesIO(student_json)
                 student_parsed=JSONParser().parse(student_stream)
                 student_deserialized=StudentSerializer(student_old,data=student_parsed)
                 if student_deserialized.is_valid():
@@ -51,8 +52,7 @@ def student_api(request,id=None):
                 return HttpResponse('Student with given id does not exist',status=400)
         else:
             return HttpResponse('Student with out id cannot be updated',status=400)
-    elif request.method=='DELETE':
-        print(id)
+    def delete(self,request,*args,id=None,**kwargs):
         if id!=None:
             try:
                 student=Student.objects.get(id=id)
