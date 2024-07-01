@@ -1,0 +1,47 @@
+# Byte-compiled / optimized Python files
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+env/
+
+# Ignore Django's secret key file
+*.secret_key
+
+# Ignore Django's local settings file
+local_settings.py
+
+# Ignore Django database file
+db.sqlite3
+
+# Ignore Django migrations
+**/migrations/
+
+# Ignore static files directory
+static/
+
+# Ignore media files directory
+media/
+
+# Ignore log files
+*.log
+
+# Ignore backup files created by editors or version control
+*~
+\#*\#
+
+# Ignore pipenv virtual environment
+/.venv
+
+# Ignore macOS directory attributes
+.DS_Store
+
+# Ignore Visual Studio Code settings
+.vscode/
+
+# Ignore PyCharm settings
+.idea/
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
