@@ -1,30 +1,66 @@
-from rest_framework.generics import GenericAPIView
-from rest_framework.mixins import ListModelMixin,RetrieveModelMixin,CreateModelMixin,UpdateModelMixin,DestroyModelMixin
+from rest_framework import viewsets
 from .models import Student
 from .serializers import StudentSerializer
+from rest_framework.response import Response
+from rest_framework import status
 
 
-class StudentAPI(GenericAPIView,ListModelMixin,RetrieveModelMixin,CreateModelMixin,UpdateModelMixin,DestroyModelMixin):
-    queryset=Student.objects.all()
-    serializer_class=StudentSerializer
-    lookup_field='id'
-    lookup_url_kwarg='id'
-
-    def get(self,request,*args,**kwargs):
-        if kwargs.get(self.lookup_url_kwarg) is not None:
-            return self.retrieve(request,*args,**kwargs)
+class StudentViewSet(viewsets.ViewSet):
+    
+    def list(self,request,*args,**kwargs):
+        students=Student.objects.all()
+        students_serialized=StudentSerializer(students,many=True)
+        if students.exists():
+            return Response(students_serialized.data,status=status.HTTP_200_OK)
         else:
-            return self.list(request,*args,**kwargs)
+            return Response([],status=status.HTTP_204_NO_CONTENT)
         
-    def post(self,request,*args,**kwargs):
-        return self.create(request,*args,**kwargs)
+    def create(self,request,*args,**kwargs):
+        student_deserialized=StudentSerializer(data=request.data)
+        if student_deserialized.is_valid():
+            student_deserialized.save()
+            return Response(request.data,status=status.HTTP_201_CREATED)
+        return Response(student_deserialized.errors,status=status.HTTP_400_BAD_REQUEST)
     
-    def put(self,request,*args,**kwargs):
-        return self.update(request,*args,**kwargs)
-    
-    # def patch(self,request,*args,**kwargs):
-    #     print('patch')
-    #     return self.partial_update(request,*args,**kwargs)
-
+    def retrieve(self,request,*args,**kwargs):
+        id=kwargs['pk']
+        try:
+            student=Student.objects.get(id=id)
+            student_serialized=StudentSerializer(student)
+            return Response(student_serialized.data,status=status.HTTP_200_OK)
+        except Student.DoesNotExist:
+            return Response("Student with Give id Doesnot exist",status=status.HTTP_204_NO_CONTENT)
+        except:
+            return Response('Bad Request',status=status.HTTP_400_BAD_REQUEST)
+        
+    def update(self,request,*args,**kwargs):
+        id=kwargs['pk']
+        if(id is not None):
+            try:
+                student=Student.objects.get(id=id)
+                student_deserialized=StudentSerializer(student,data=request.data)
+                if(student_deserialized.is_valid()):
+                    student_deserialized.save()
+                    return Response(student_deserialized.data,status=status.HTTP_200_OK)
+            except Student.DoesNotExist:
+                return Response("Student with Give id Doesnot exist",status=status.HTTP_204_NO_CONTENT)
+            except:
+                return Response('Bad Request',status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response('Student id required to update',status.HTTP_400_BAD_REQUEST)
+        
     def delete(self,request,*args,**kwargs):
-        return self.destroy(request,*args,**kwargs)
+        id=kwargs['pk']
+        if id is not None:
+            try:
+                student=Student.objects.get(id=id)
+                student.delete()
+                return Response('Deleted',status=status.HTTP_204_NO_CONTENT)
+            except Student.DoesNotExist:
+                return Response('Student with given id does not exist',status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response('Student id required to delete',status=status.HTTP_400_BAD_REQUEST)
+            
+
+        
+    
